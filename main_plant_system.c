@@ -21,7 +21,9 @@
  *      Humi : 52%           [water drop icon while the pump is ON]
  *      Pump : OFF
  *
- *  Green LED LD2 blinks once per second = program is running.
+ *  Green LED LD2:  slow blink (1 s)    = running, OLED OK
+ *                  fast blink bursts   = running, OLED NOT found (check wiring)
+ *                  no blinking         = program is not running
  *  Serial log: ST-Link virtual COM port, 115200 8N1.
  * ======================================================================== */
 
@@ -34,7 +36,7 @@
 #define DEMO_MODE           0        /* 1: fixed sample values 68% / 24.5C / 52%, no sensors */
 #define DEMO_PUMP_ON        0        /* DEMO_MODE only: 1 = show "Pump : ON" + water drop    */
 
-#define DHT_TYPE            11       /* 22 = DHT22,  11 = DHT11                               */
+#define DHT_TYPE            1       /* 22 = DHT22,  11 = DHT11                               */
 
 #define SOIL_ADC_DRY        3000     /* ADC raw value with the sensor in dry air              */
 #define SOIL_ADC_WET        1300     /* ADC raw value with the sensor in water                */
@@ -128,7 +130,7 @@ static uint8_t si2c_write(uint8_t b)
         b <<= 1;
         I2C_WAIT();
         SCL_H(); I2C_WAIT();
-        SCL_L();
+        SCL_L(); I2C_WAIT();        /* data hold time: SSD1306 needs >= 300 ns */
     }
     SDA_H(); I2C_WAIT();            /* release SDA for ACK */
     SCL_H(); I2C_WAIT();
@@ -597,8 +599,18 @@ int main(void)
             }
         }
 
-        /* 5) heartbeat LED + serial log */
-        HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+        /* 5) status LED (LD2) + serial log
+         *    slow blink (once per second)  = running, OLED OK
+         *    fast blink bursts             = running, OLED NOT found
+         *    no blinking at all            = program is not running        */
+        if (oled_ready) {
+            HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+        } else {
+            for (int i = 0; i < 10; i++) {
+                HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+                HAL_Delay(50);
+            }
+        }
 
         printf("raw=%u soil=%u%% temp=%s%d.%dC hum=%d.%d%% dht=%s pump=%s oled=%s\r\n",
                raw, soil,
