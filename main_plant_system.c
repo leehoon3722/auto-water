@@ -34,7 +34,7 @@
 #define DEMO_MODE           0        /* 1: fixed sample values 68% / 24.5C / 52%, no sensors */
 #define DEMO_PUMP_ON        0        /* DEMO_MODE only: 1 = show "Pump : ON" + water drop    */
 
-#define DHT_TYPE            22       /* 22 = DHT22,  11 = DHT11                               */
+#define DHT_TYPE            11       /* 22 = DHT22,  11 = DHT11                               */
 
 #define SOIL_ADC_DRY        3000     /* ADC raw value with the sensor in dry air              */
 #define SOIL_ADC_WET        1300     /* ADC raw value with the sensor in water                */
